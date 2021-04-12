@@ -7,7 +7,7 @@
 %               3. sample names
 %               4. sample type (pure culture, mixed culture, fecal sample)
 %               5. number of channels
-%               6. growth stage ('lag','exponential','stationary','fecal')
+%               6. growth stage ('lag','exponential','stationary','mixed','fecal')
 %
 %       each row is a different experimental "replicate"
 %       each column represents a type of image data that requires the same analysis
@@ -19,7 +19,7 @@
 
 
 % last updated: 2021 April 11
-% commit message: first commit, assumes NOMO scope data
+% commit message: edit location of metadata.mat
 
 
 % OK let's go!
@@ -29,7 +29,7 @@
 
 clc
 clear
-cd('/Users/jen/such-hipr')
+cd('/Users/jen/such-hipr/sourcedata')
 load('metadata.mat')
 
 
