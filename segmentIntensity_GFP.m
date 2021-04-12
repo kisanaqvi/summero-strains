@@ -1,4 +1,4 @@
-%% segment phase and fluorescent image and huild data matrix
+%% segment phase and fluorescent image and build data matrix
 
 % goal: extract cell size and HiPR-FISH signal from phase and GFP images
 
@@ -25,26 +25,26 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 April 6
-% commit: first commit, use whos_a_cell to quantify intensity in single cells and clumps in 2021-03-31 experiment
+% last updated: jen, 2021 April 11
+% commit: change bar plots to box plots, save data matrix of raw measurements
 
 
 %% Part ONE: measurements from raw images 
 
 clc
 clear
-
+cd('/Users/jen/such-hipr/sourcedata')
+load('metadata.mat')
 
 % 0. initialize experiment data
-px_size = 11/150; % 11 um pixels with 150x magnification
+index = 1; % 2021-03-31
+date = metadata{index}.date;
+magnification = metadata{index}.magnification;
+samples = metadata{index}.samples;
 
-experiment = '2021-03-31';
-data_folder = strcat('/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/',experiment);
+data_folder = strcat('/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/',date);
 cd(data_folder)
-
-%sample_directory = dir('s*');
-%samples = {samples.name};
-samples = {'s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 's12'};
+px_size = 11/magnification; % 11 um pixels with 150x magnification
 
 
 
@@ -175,8 +175,26 @@ end
 clear name_gfp name_phase names 
 clear ss stk current_stack
 
+cd('/Users/jen/such-hipr/sourcedata')
+save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 %% Part TWO: trim measured data and create data structure
+
+
+clear
+clc
+cd('/Users/jen/such-hipr/sourcedata')
+load('metadata.mat')
+
+% 0. initialize experiment data
+index = 1; % 2021-03-31
+date = metadata{index}.date;
+load(strcat('dm-segmentIntensity-',date,'.mat'))
+
+samples = metadata{index}.samples;
+magnification = metadata{1}.magnification;
+px_size = 11/magnification; % 11 um pixels with 150x magnification
+
 
 % 1. concatenate data from same sample
 for col = 1:length(samples)
@@ -272,7 +290,6 @@ for sample = 1:length(samples)
     
 end
 clear sample sample_particles p_trim UpperBound LowerBound
-     
     
 %% Part THREE: visualize measured data
 
@@ -309,19 +326,10 @@ for smpl = 1:length(samples)
     clump_bg = bg_gfp(cell_width > clumpThresh);
     
     
-    % 2. plot absolute intensities of background, single cells, clumps
-    
-    abs_single = [mean(single_bg); mean(single_gfp)];
-    abs_clump = [mean(clump_bg); mean(clump_gfp)];
-    
-    std_single = [std(single_bg); std(single_gfp)];
-    std_clump = [std(clump_bg); std(clump_gfp)];
-    
-    n_single = length(single_bg);
-    n_clump = length(clump_bg);
-    
-    sem_single = std_single./sqrt(n_single);
-    sem_clump = std_clump./sqrt(n_clump);
+    % 2. box plots of absolute intensities of background, single cells, clumps
+      
+     n_single = length(single_bg);
+     n_clump = length(clump_bg);
     
     % group subplots by strain
     if smpl < 5
@@ -329,36 +337,36 @@ for smpl = 1:length(samples)
         
         figure(7)
         subplot(1,4,counter_381)
-        bar([abs_single; abs_clump])
-        hold on
-        errorbar([abs_single; abs_clump], [std_single; std_clump],'.')
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        boxplot(x,g)
         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([0 650])
+        ylim([200 1600])
         
     elseif smpl < 9
         counter_505 = counter_505 + 1;
         
         figure(8)
         subplot(1,4,counter_505)
-        bar([abs_single; abs_clump])
-        hold on
-        errorbar([abs_single; abs_clump], [std_single; std_clump],'.')
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        boxplot(x,g)
         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([0 650])
+        ylim([200 1600])
         
     else
         counter_488 = counter_488 + 1;
         
         figure(9)
         subplot(1,4,counter_488)
-        bar([abs_single; abs_clump])
-        hold on
-        errorbar([abs_single; abs_clump], [std_single; std_clump],'.')
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        boxplot(x,g)
         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([0 650])
+        ylim([200 1600])
         
     end
     
@@ -368,57 +376,74 @@ for smpl = 1:length(samples)
     % cell fluorescence normalized by bg fluorescence
     norm_single = single_gfp./single_bg;
     norm_clump = clump_gfp./clump_bg;
-    
-    % mean of normalized values
-    norm_means = [mean(norm_single); mean(norm_clump)];
-    
-    % error of normalized values
-    norm_std = [std(norm_single); std(norm_clump)];
     norm_n = [length(norm_single); length(norm_clump)];
-    norm_sem = norm_std./sqrt(norm_n);
+
     
     if smpl < 5
         ct_381 = ct_381 + 1;
         
         figure(17)
         subplot(1,4,ct_381)
-        bar(norm_means)
-        hold on
-        errorbar(norm_means, norm_std,'.')
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
         set(gca,'xticklabel',{'1x','Clump'})
         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-        ylim([0 2.5])
+        ylim([0.8 5])
         
     elseif smpl < 9
         ct_505 = ct_505 + 1;
         
         figure(18)
         subplot(1,4,ct_505)
-        bar(norm_means)
-        hold on
-        errorbar(norm_means, norm_std,'.')
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
         set(gca,'xticklabel',{'1x','Clump'})
         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-        ylim([0 2.5])
+        ylim([0.8 5])
         
     else
         ct_488 = ct_488 + 1;
         
         figure(19)
         subplot(1,4,ct_488)
-        bar(norm_means)
-        hold on
-        errorbar(norm_means, norm_std,'.')
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
         set(gca,'xticklabel',{'1x','Clump'})
         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-        ylim([0 2.5])
+        ylim([0.8 5])
         
     end
     
     
 end
 
+%% Part FOUR. save boxplots
 
+cd('/Users/jen/Documents/TropiniLab/Data/HiPR_fish')
 
+figure(7)
+saveas(gcf,strcat(date,'-absolute-381'),'epsc')
+close(gcf)
 
+figure(8)
+saveas(gcf,strcat(date,'-absolute-505'),'epsc')
+close(gcf)
 
+figure(9)
+saveas(gcf,strcat(date,'-absolute-488'),'epsc')
+close(gcf)
+
+figure(17)
+saveas(gcf,strcat(date,'-norm-381'),'epsc')
+close(gcf)
+
+figure(18)
+saveas(gcf,strcat(date,'-norm-505'),'epsc')
+close(gcf)
+
+figure(19)
+saveas(gcf,strcat(date,'-norm-488'),'epsc')
+close(gcf)
