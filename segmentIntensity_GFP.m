@@ -37,7 +37,7 @@ cd('/Users/jen/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 1; % 2021-03-31
+index = 2; % 2021-04-12
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
@@ -187,7 +187,7 @@ cd('/Users/jen/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 1; % 2021-03-31
+index = 2; % 2021-04-12
 date = metadata{index}.date;
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
@@ -274,12 +274,14 @@ for sample = 1:length(samples)
     
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
-    if sample < 5
-        LowerBound = 1;     % lower bound for 381 (see whos_a_cell.m)
-    elseif sample < 9
-        LowerBound = 0.7;   % lower bound for 505 (see whos_a_cell.m)
+    if sample < 4
+        LowerBound = 1.3;     % lower bound for exponential (see whos_a_cell.m)
+    elseif sample == 4
+        LowerBound = 1;       % lower bound for stationary (see whos_a_cell.m)
+    elseif sample == 5
+        LowerBound = 1.3;
     else
-        LowerBound = 0.6;   % lower bound for 488 (see whos_a_cell.m)
+        LowerBound = 1;
     end
     UpperBound = 176;     % whole image length
     p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,LowerBound,UpperBound);

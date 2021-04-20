@@ -26,7 +26,8 @@
 % ok, let's go!
 
 % last updated: jen, 2021 April 11
-% commit: change bar plots to box plots, save data matrix of raw measurements
+% commit: first commit, 2021-04-12 experiment with exponential and
+%         stationary phase cells 
 
 
 %% Part ONE: measurements from raw images 
