@@ -25,27 +25,26 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 April 11
-% commit: first commit, 2021-04-12 experiment with exponential and
-%         stationary phase cells 
+% last updated: jen, 2021 April 20
+% commit: analyze 2021-04-20 experiment
 
 
 %% Part ONE: measurements from raw images 
 
 clc
 clear
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 2; % 2021-04-12
+index = 3; % 2021-04-20
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
 
 data_folder = strcat('/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/',date);
 cd(data_folder)
-px_size = 11/magnification; % 11 um pixels with 150x magnification
+px_size = 11/magnification; % Ti2 has 11x11 um pixels pre-magnification
 
 
 
@@ -80,7 +79,7 @@ for ss = 1:length(samples)
         
         %   1b. make mask from phase image
         figure(1)
-        imshow(img_phase, 'DisplayRange',[500 2500]); %lowering right # increases num sat'd pxls
+        imshow(img_phase, 'DisplayRange',[2000 5000]); %lowering right # increases num sat'd pxls
         
         %   i. gaussian smoothing of phase image
         phase_smoothed = imgaussfilt(img_phase,0.8);
@@ -176,7 +175,7 @@ end
 clear name_gfp name_phase names 
 clear ss stk current_stack
 
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 %% Part TWO: trim measured data and create data structure
@@ -184,17 +183,17 @@ save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 clear
 clc
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 2; % 2021-04-12
+index = 3; % 2021-04-20
 date = metadata{index}.date;
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
 samples = metadata{index}.samples;
-magnification = metadata{1}.magnification;
-px_size = 11/magnification; % 11 um pixels with 150x magnification
+magnification = metadata{index}.magnification;
+px_size = 11/magnification; 
 
 
 % 1. concatenate data from same sample
@@ -276,13 +275,13 @@ for sample = 1:length(samples)
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
     if sample < 4
-        LowerBound = 1.3;     % lower bound for exponential (see whos_a_cell.m)
-    elseif sample == 4
-        LowerBound = 1;       % lower bound for stationary (see whos_a_cell.m)
-    elseif sample == 5
-        LowerBound = 1.3;
+        LowerBound = 1;         % lower bound for exponential 381 (see whos_a_cell.m)
+    elseif sample < 7
+        LowerBound = 1.3;       % lower bound for exponential BW25113 (see whos_a_cell.m)
+    elseif sample < 9
+        LowerBound = 1;         % lower bound for stationary 381 (see whos_a_cell.m)
     else
-        LowerBound = 1;
+        LowerBound = 1;         % lower bound for stationary BW25113 (see whos_a_cell.m)
     end
     UpperBound = 176;     % whole image length
     p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,LowerBound,UpperBound);
@@ -300,9 +299,11 @@ clear sample sample_particles p_trim UpperBound LowerBound
 % 2. plot absolute intensities of background, single cells, clumps
 % 3. plot single cell and clump intensities normalized by background
 
+clc
 
-counter_blank = 0; counter_tp001 = 0;
-% ct_381 = 0; ct_505 = 0; ct_488 = 0;
+counter = 0;% counter_stat = 0;
+cv_single = zeros(length(samples),1);
+cv_clumps = zeros(length(samples),1);
 
 % for each sample
 for smpl = 1:length(samples)
@@ -310,19 +311,19 @@ for smpl = 1:length(samples)
     % 0. gather cell width and intensity data
     sample_data = converted_data{1,smpl};
     cell_width = sample_data.MinAx;
-    cell_gfp = sample_data.gfp_cell; % mean cell fluorescence 
+    cell_gfp = sample_data.gfp_cell; % mean cell fluorescence
     bg_gfp = sample_data.gfp_bg; % mean bg fluorescence
     
-
+    
     % 1. isolate single cells from clumps
     if smpl < 4
+        clumpThresh = 1.8;  % min width of clumps for exponential 381
+    elseif smpl < 7
         clumpThresh = 2.4;  % min width of clumps for exponential BW25113 (see whos_a_cell.m)
-    elseif smpl == 4
-        clumpThresh = 1.9;  % min width of clumps for stationary BW25113
-    elseif smpl == 5
-        clumpThresh = 2.4;
+    elseif smpl < 9
+        clumpThresh = 1.6;  % min width of clumps for stationary 381
     else
-        clumpThresh = 1.9;
+        clumpThresh = 1.9;  % min width of clumps for stationary BW25113
     end
     
     single_gfp = cell_gfp(cell_width <= clumpThresh);
@@ -332,84 +333,43 @@ for smpl = 1:length(samples)
     
     
     % 2. box plots of absolute intensities of background, single cells, clumps
-      
-     n_single = length(single_bg);
-     n_clump = length(clump_bg);
     
-    % group subplots by label
-    if smpl < 5
-        counter_blank = counter_blank + 1;
-        
-        figure(7)
-        subplot(1,4,counter_blank)
-        x = [single_bg; single_gfp; clump_bg; clump_gfp];
-        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-        boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-        title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([400 1800])
-                
-    else
-        counter_tp001 = counter_tp001 + 1;
-        
-        figure(9)
-        subplot(1,4,counter_tp001)
-        x = [single_bg; single_gfp; clump_bg; clump_gfp];
-        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-        boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-        title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([400 1800])
-        
-    end
+    n_single = length(single_bg);
+    n_clump = length(clump_bg);
+    
+    counter = counter + 1;
+    
+    figure(7)
+    subplot(1,length(samples),counter)
+    x = [single_bg; single_gfp; clump_bg; clump_gfp];
+    g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+    boxplot(x,g)
+    set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
+    title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
+    ylim([0 10000])
     
     
-%     % 3. plot single cell and clump intensities normalized by background
-%     
-%     % cell fluorescence normalized by bg fluorescence
-%     norm_single = single_gfp./single_bg;
-%     norm_clump = clump_gfp./clump_bg;
-%     norm_n = [length(norm_single); length(norm_clump)];
-% 
-%     
-%     if smpl < 5
-%         ct_381 = ct_381 + 1;
-%         
-%         figure(17)
-%         subplot(1,4,ct_381)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     elseif smpl < 9
-%         ct_505 = ct_505 + 1;
-%         
-%         figure(18)
-%         subplot(1,4,ct_505)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     else
-%         ct_488 = ct_488 + 1;
-%         
-%         figure(19)
-%         subplot(1,4,ct_488)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     end
-%     
+    % 3. plot single cell and clump intensities normalized by background
+    
+    % cell fluorescence normalized by bg fluorescence
+    norm_single = single_gfp./single_bg;
+    norm_clump = clump_gfp./clump_bg;
+    norm_n = [length(norm_single); length(norm_clump)]; 
+    
+    figure(17)
+    subplot(1,length(samples),counter)
+    xx = [norm_single; norm_clump];
+    gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+    boxplot(xx,gg)
+    set(gca,'xticklabel',{'1x','Clump'})
+    title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
+    ylim([0 12.5])
+    
+    
+    % 4. calculate coefficient of variation (standard deviation divided by mean)
+    cv_single(smpl) = std(norm_single)/mean(norm_single);
+    cv_clumps(smpl) = std(norm_clump)/mean(norm_clump);
+    
     
 end
 
@@ -417,10 +377,7 @@ end
 
 cd('/Users/jen/Documents/TropiniLab/Data/HiPR_fish')
 
-figure(7)
-saveas(gcf,strcat(date,'-absolute-BW25113-nolabel'),'epsc')
+figure(17)
+saveas(gcf,strcat(date,'-summary'),'epsc')
 close(gcf)
 
-figure(9)
-saveas(gcf,strcat(date,'-absolute-BW25113-labeled'),'epsc')
-close(gcf)
