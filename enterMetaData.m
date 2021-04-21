@@ -18,8 +18,9 @@
 %
 
 
-% last updated: 2021 April 11
-% commit message: edit location of metadata.mat
+% last updated: 2021 April 20
+% commit message: edit location of metadata.mat & add "mixed" as growth
+%                 stage option
 
 
 % OK let's go!
@@ -29,7 +30,7 @@
 
 clc
 clear
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 load('metadata.mat')
 
 
@@ -67,7 +68,7 @@ newdata(1).date = date;
 
 
 % 5. prompt user for growth stage
-prompt = 'Enter growth stage as a string (lag,exponential,stationary,fecal): ';
+prompt = 'Enter growth stage as a string (lag,exponential,stationary,mixed,fecal): ';
 growthStage = input(prompt);
 newdata(1).growthStage = growthStage;
 
