@@ -72,20 +72,28 @@ prompt = 'Enter growth stage as a string (lag,exponential,stationary,mixed,fecal
 growthStage = input(prompt);
 newdata(1).growthStage = growthStage;
 
+%% still to finish!
 
 % 6. prompt user for sample names
 prompt = 'Enter sample names as a cell array of strings ({name1,name2,...}): ';
 samples = input(prompt);
 newdata(1).samples = samples;
 
+%%
 
-% 7. prompt user for sample magnification
+% 7. prompt user for strain info
+prompt = 'Enter strains as a cell array of strings ({strain1,strain2,...}): ';
+strains = input(prompt);
+newdata(1).strains = strains;
+
+
+% 8. prompt user for sample magnification
 prompt = 'Enter sample magnification as an integer (100, 150,...): ';
 magnification = input(prompt);
 newdata(1).magnification = magnification;
 
 
-% 8. assign data structure to new (experiment-specific cell)
+% 9. assign data structure to new (experiment-specific cell)
 priorEntries = size(metadata);
 if column > priorEntries % new column, row = 1
     newrow = 1;
@@ -97,6 +105,6 @@ end
 metadata{newrow,column} = newdata;
 
 
-%% 8. save storedMetaData
+%% 10. save storedMetaData
 save('metadata.mat','metadata')
 
