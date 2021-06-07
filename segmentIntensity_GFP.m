@@ -25,24 +25,24 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 April 11
-% commit: change bar plots to box plots, save data matrix of raw measurements
+% last updated: jen, 2021 June 7
+% commit: temp commit to share start of 2021-06-04 analysis with kisa
 
 
 %% Part ONE: measurements from raw images 
 
 clc
 clear
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 2; % 2021-04-12
+index = 4; % 2021-06-04
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
 
-data_folder = strcat('/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/',date);
+data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
 cd(data_folder)
 px_size = 11/magnification; % 11 um pixels with 150x magnification
 
@@ -72,14 +72,14 @@ for ss = 1:length(samples)
         current_stack = names{stk};
         cd(strcat(current_stack,'/Default'))
         
-        %   1a. read phase, gfp, mcherry and dapi images
+        %   1a. read phase, gfp images
         img_phase = imread(name_phase);
         img_gfp = imread(name_gfp);
         
         
         %   1b. make mask from phase image
         figure(1)
-        imshow(img_phase, 'DisplayRange',[500 2500]); %lowering right # increases num sat'd pxls
+        imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
         
         %   i. gaussian smoothing of phase image
         phase_smoothed = imgaussfilt(img_phase,0.8);
@@ -114,7 +114,7 @@ for ss = 1:length(samples)
         
         
         
-        %   2. quantify fluorescence intensity inside mask (all channels)
+        %   2. quantify fluorescence intensity inside mask (in GFP channel)
         
         %   2a. overlay mask with fluorescence image by dot-product
         masked_gfp = bw_final .* double(img_gfp); % convert uint16 image to double class
@@ -175,7 +175,7 @@ end
 clear name_gfp name_phase names 
 clear ss stk current_stack
 
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
 save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 %% Part TWO: trim measured data and create data structure
@@ -183,12 +183,14 @@ save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 clear
 clc
-cd('/Users/jen/such-hipr/sourcedata')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
+%cd('/Users/jen/Documents/TropiniLab/Data/Kisa') % move metadata to this path
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 2; % 2021-04-12
+index = 4; % 2021-06-04
 date = metadata{index}.date;
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
 samples = metadata{index}.samples;
@@ -219,8 +221,12 @@ clear col combined_sample_data num_stacks current_sample stk_data
 for sample = 1:length(samples)
     
     sample_particles = combined_particles{1,sample};
+    if isempty(sample_particles) == 1
+        continue
+    end
     
-    % 2a. convert x,y coordinate data
+    
+    % 2a. convert x,y coordinate of particle centroid
     x_position = [];
     y_position = [];
     for ii = 1:length(sample_particles)
@@ -275,15 +281,12 @@ for sample = 1:length(samples)
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
     if sample < 4
-        LowerBound = 1.3;     % lower bound for exponential (see whos_a_cell.m)
-    elseif sample == 4
-        LowerBound = 1;       % lower bound for stationary (see whos_a_cell.m)
-    elseif sample == 5
-        LowerBound = 1.3;
-    else
-        LowerBound = 1;
+        LowerBound = 0.6;     % lower bound for exponential (see whos_a_cell.m)
+        UpperBound = 0.9;
+    elseif sample >= 4
+        LowerBound = 0.6;       % lower bound for stationary (see whos_a_cell.m)
+        UpperBound = 0.9;
     end
-    UpperBound = 176;     % whole image length
     p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,LowerBound,UpperBound);
     
 
@@ -299,9 +302,9 @@ clear sample sample_particles p_trim UpperBound LowerBound
 % 2. plot absolute intensities of background, single cells, clumps
 % 3. plot single cell and clump intensities normalized by background
 
-
-counter_381 = 0; counter_505 = 0; counter_488 = 0;
-ct_381 = 0; ct_505 = 0; ct_488 = 0;
+% a counter for each
+counter_G1 = 0; counter_G2 = 0; counter_G3 = 0;
+ct_G1 = 0; ct_G2 = 0; ct_G3 = 0;
 
 % for each sample
 for smpl = 1:length(samples)
@@ -335,10 +338,10 @@ for smpl = 1:length(samples)
     
     % group subplots by strain
     if smpl < 5
-        counter_381 = counter_381 + 1;
+        counter_G1 = counter_G1 + 1;
         
         figure(7)
-        subplot(1,4,counter_381)
+        subplot(1,length(samples),counter_G1)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
@@ -347,10 +350,10 @@ for smpl = 1:length(samples)
         ylim([200 1600])
         
     elseif smpl < 9
-        counter_505 = counter_505 + 1;
+        counter_G2 = counter_G2 + 1;
         
         figure(8)
-        subplot(1,4,counter_505)
+        subplot(1,length(samples),counter_G2)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
@@ -359,10 +362,10 @@ for smpl = 1:length(samples)
         ylim([200 1600])
         
     else
-        counter_488 = counter_488 + 1;
+        counter_G3 = counter_G3 + 1;
         
         figure(9)
-        subplot(1,4,counter_488)
+        subplot(1,4,counter_G3)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
@@ -382,10 +385,10 @@ for smpl = 1:length(samples)
 
     
     if smpl < 5
-        ct_381 = ct_381 + 1;
+        ct_G1 = ct_G1 + 1;
         
         figure(17)
-        subplot(1,4,ct_381)
+        subplot(1,4,ct_G1)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
@@ -394,10 +397,10 @@ for smpl = 1:length(samples)
         ylim([0.8 5])
         
     elseif smpl < 9
-        ct_505 = ct_505 + 1;
+        ct_G2 = ct_G2 + 1;
         
         figure(18)
-        subplot(1,4,ct_505)
+        subplot(1,4,ct_G2)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
@@ -406,10 +409,10 @@ for smpl = 1:length(samples)
         ylim([0.8 5])
         
     else
-        ct_488 = ct_488 + 1;
+        ct_G3 = ct_G3 + 1;
         
         figure(19)
-        subplot(1,4,ct_488)
+        subplot(1,4,ct_G3)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
