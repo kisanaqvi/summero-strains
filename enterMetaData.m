@@ -18,9 +18,8 @@
 %
 
 
-% last updated: 2021 April 20
-% commit message: edit location of metadata.mat & add "mixed" as growth
-%                 stage option
+% last updated: 2021 June 7
+% commit message: small edits to streamline collab between jen & kisa
 
 
 % OK let's go!
@@ -72,14 +71,13 @@ prompt = 'Enter growth stage as a string (lag,exponential,stationary,mixed,fecal
 growthStage = input(prompt);
 newdata(1).growthStage = growthStage;
 
-%% still to finish!
+
 
 % 6. prompt user for sample names
 prompt = 'Enter sample names as a cell array of strings ({name1,name2,...}): ';
 samples = input(prompt);
 newdata(1).samples = samples;
 
-%%
 
 % 7. prompt user for strain info
 prompt = 'Enter strains as a cell array of strings ({strain1,strain2,...}): ';
