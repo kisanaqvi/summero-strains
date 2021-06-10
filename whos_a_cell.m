@@ -614,12 +614,12 @@ clear prefix suffix
 cd(data_folder)
 sDirectory = dir(strcat(sample,'_*'));
 names = {sDirectory.name};
-img_h01_exp = names{4}; % chosen image
+img_h07_exp = names{4}; % chosen image
 
 
 % 1. load one 150x phase image
 cd(data_folder)
-cd(strcat(img_h01_exp,'/Default'))
+cd(strcat(img_h07_exp,'/Default'))
 img_phase = imread(name_phase); % read phase image
 figure(1) % display phase image
 imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
