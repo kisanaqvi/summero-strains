@@ -18,8 +18,8 @@
 %
 
 
-% last updated: 2021 June 7
-% commit message: small edits to streamline collab between jen & kisa
+% last updated: 2021 June 16
+% commit message: add 2021-06-15 experiment
 
 
 % OK let's go!
@@ -29,7 +29,7 @@
 
 clc
 clear
-cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
+cd('/Users/jen/summero-strains')
 load('metadata.mat')
 
 
@@ -45,7 +45,6 @@ newdata(1).sampleType = sampleType;
 prompt = 'Enter number of fluorescent channels (i.e. exclude phase): ';
 numFluors = input(prompt);
 newdata(1).numFluors = numFluors;
-
 
 
 % 3. determine column of experiment to add
