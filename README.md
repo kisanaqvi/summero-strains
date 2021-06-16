@@ -7,6 +7,10 @@ A work in progress by Jen Nguyen
 ## organizing experiment meta data
 1. enterMetaData.m
 	- creates and/or builds from data structure called metadata.mat
+	- sampleType:
+		- "pure": fixed cultures of known strains
+	 	- "mixed": undefined microbial community
+	- 
 
 ## determining single cells from junk and clumps
 2. whos_a_cell.m: threshold determination (by cell width) to distinguish single cells from other particles

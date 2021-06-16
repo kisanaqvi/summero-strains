@@ -25,8 +25,8 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 June 7
-% commit: temp commit to share start of 2021-06-04 analysis with kisa
+% last updated: jen, 2021 June 16
+% commit: 2021-06-04 analysis, testing collab merge with kisa
 
 
 %% Part ONE: measurements from raw images 
@@ -307,7 +307,7 @@ counter_G1 = 0; counter_G2 = 0; counter_G3 = 0;
 ct_G1 = 0; ct_G2 = 0; ct_G3 = 0;
 
 % for each sample
-for smpl = 1:length(samples)
+for smpl = 1:3%length(samples)
     
     % 0. gather cell width and intensity data
     sample_data = converted_data{1,smpl};
@@ -341,13 +341,14 @@ for smpl = 1:length(samples)
         counter_G1 = counter_G1 + 1;
         
         figure(7)
-        subplot(1,length(samples),counter_G1)
+        %subplot(1,length(samples),counter_G1)
+        subplot(1,3,counter_G1)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-        title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-        ylim([200 1600])
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
+        ylim([200 800])
         
     elseif smpl < 9
         counter_G2 = counter_G2 + 1;
@@ -357,8 +358,8 @@ for smpl = 1:length(samples)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-        title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
         ylim([200 1600])
         
     else
@@ -369,8 +370,8 @@ for smpl = 1:length(samples)
         x = [single_bg; single_gfp; clump_bg; clump_gfp];
         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-        title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
         ylim([200 1600])
         
     end
@@ -388,13 +389,14 @@ for smpl = 1:length(samples)
         ct_G1 = ct_G1 + 1;
         
         figure(17)
-        subplot(1,4,ct_G1)
+        %subplot(1,4,ct_G1)
+        subplot(1,3,counter_G1)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
-        set(gca,'xticklabel',{'1x','Clump'})
-        title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-        ylim([0.8 5])
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
+        ylim([0.8 3])
         
     elseif smpl < 9
         ct_G2 = ct_G2 + 1;
@@ -404,8 +406,8 @@ for smpl = 1:length(samples)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
-        set(gca,'xticklabel',{'1x','Clump'})
-        title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
         ylim([0.8 5])
         
     else
@@ -416,8 +418,8 @@ for smpl = 1:length(samples)
         xx = [norm_single; norm_clump];
         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
         boxplot(xx,gg)
-        set(gca,'xticklabel',{'1x','Clump'})
-        title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
         ylim([0.8 5])
         
     end
