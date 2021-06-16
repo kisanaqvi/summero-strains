@@ -29,7 +29,7 @@
 
 clc
 clear
-cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
+cd('/Users/jen/summero-strains')
 load('metadata.mat')
 
 
