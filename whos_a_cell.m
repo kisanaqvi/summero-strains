@@ -22,8 +22,8 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 June 16
-% commit: manual add of Kisa's entries
+% last updated: jen, 2021 June 17
+% commit: added to G6 (S2) 2021-06-15 to overlay particles on GFP image
 
 
 %% 381 - Lactobacillus plantarum ATCC BAA-793 (Firmicute)
@@ -872,13 +872,15 @@ clear
 % 0. initialize experiment meta data
 px_size = 11/100; % 11 um pixels with 100x magnification
 experiment = '2021-06-15';
-data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
+%data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
+data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',experiment);
 cd(data_folder)
 sample = 'S2'; % fixed with NM65 encoding probe
 
 prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
 name_phase = strcat(prefix,'channel000',suffix);
+name_gfp = strcat(prefix,'channel001',suffix);
 clear prefix suffix
     
 
@@ -886,15 +888,16 @@ clear prefix suffix
 cd(data_folder)
 sDirectory = dir(strcat(sample,'_*'));
 names = {sDirectory.name};
-img_h01_exp = names{8}; % chosen image
+img_h01_exp = names{5}; % chosen image
 
 
 % 1. load one 100x phase image
 cd(data_folder)
 cd(strcat(img_h01_exp,'/Default'))
 img_phase = imread(name_phase); % read phase image
+img_gfp = imread(name_gfp); 
 figure(1) % display phase image
-imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
+imshow(img_gfp, 'DisplayRange',[500 1000]); %lowering right # increases num sat'd pxls
 title('G6 S2 (100x), phase')
 
 
@@ -928,7 +931,7 @@ angles = extractfield(stats,'Orientation')';
 %    iii) above what threshold is a clump of cells?
 
 figure(3) % this one will get overlaid with particle outlines
-imshow(img_phase, 'DisplayRange',[1000 3000]);
+imshow(img_gfp, 'DisplayRange',[500 1000]);
 title('G6 S2 (100x), phase')
 
 for pp = 1:length(stats)
