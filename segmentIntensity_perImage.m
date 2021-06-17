@@ -18,9 +18,6 @@
 %% cell vs background intensity per image
 
 
-%  - plots boxplots of 
-
-
 clear
 clc
 cd('/Users/jen/summero-strains')
