@@ -23,15 +23,28 @@
 
 % strategy:
 %
-%   For each strain of interest
+%   For each strain of interest, user is prompted to:
+%       1. choose one test image to identify single cells based on width
+%             - have image name ready to choose its index from displayed list
+%       2. user is prompted to enter guesses of min and mix width
+%       3. user then checks particle overlaps onto phase image to determine
+%           if input widths are accurate
+%       4. if not accurate, user can adjust guesses and go again
+%       5. if acceptable, user can then choose to save data
+%       6. this repeats for all unique strain samples (fixed cultures)
 %
+%       7. when finished, edit the "last updated" and "commit" fields
+%          immediately below with date and a note about which experiment
+%          was added to segdata.mat in this run 
+%
+%           example commit: "added 2021-06-15 experiment to segdata"
+
+
+% last updated: jen, 2021 June 22
+% commit: completed automation
 
 
 % ok, let's go!
-
-% last updated: jen, 2021 June 21
-% commit: automate saving of segdata, completed 2021-06-15 experiment
-
 
 %% Part 0. intitialize user specific file paths & experiment of interest
 
@@ -118,9 +131,11 @@ for strain = 1:length(unique_strains)
         current_dir = dir(strcat(current_sample,'_*'));
         sDirectory = [sDirectory;current_dir];   
     end
+    disp(strcat('Image names of current strain sample:',current_strain, ', ',exp_stage))
     names = {sDirectory.name} % display all names for images of current strain
     
     % 4b,ii. prompt user for image to analyse
+    disp(strcat('Current strain sample = ',current_strain, ', ',exp_stage))
     prompt = 'Enter one image index in "names" as a double: ';
     img2test = input(prompt);
     strain_img = names{img2test}; % chosen image
@@ -133,11 +148,11 @@ clear current_strain current_sample strain_img
 
 % 5. loop through each strain in experiment to find segmentation parameters
 %    and store parameters in segdata.mat
-
-for uniqstrain = 1:length(testset)
+uniqcounter = 1;
+while uniqcounter <= length(testset)
     
-    unisample = testset{uniqstrain};
-    unistr = unique_strains{uniqstrain};
+    unisample = testset{uniqcounter};
+    unistr = unique_strains{uniqcounter};
     
     % 5a. display phase image & mask
     cd(data_folder)
@@ -146,9 +161,6 @@ for uniqstrain = 1:length(testset)
     figure(1) % display phase image
     imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
     title(strcat(unistr,'-phase'))
-    figure(3) % display phase image
-    imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
-    title(strcat(unistr,'-phase-overlay'))
     
     phase_smoothed = imgaussfilt(img_phase,0.8);
     bw = edge(phase_smoothed,'sobel');
@@ -159,6 +171,9 @@ for uniqstrain = 1:length(testset)
     figure(2)
     imshow(bw_final)
     title(strcat(unistr,'-mask'))
+    figure(3) % display phase image
+    imshow(img_phase, 'DisplayRange',[1000 3000]); %lowering right # increases num sat'd pxls
+    title(strcat(unistr,'-phase-overlay'))
     
     % 5b. measure particle parameters
     cc = bwconncomp(bw_final);
@@ -169,6 +184,7 @@ for uniqstrain = 1:length(testset)
     clear bw bw_dil bw_fill se phase_smoothed
     
     % 5c. prompt user to input min and max width thresholds for single cells
+    disp(strcat('Current strain sample = ',unistr,', ',exp_stage))
     prompt_min = 'Enter minimum width (um) to define a single cell as a double: ';
     minWidth = input(prompt_min);
     prompt_max = 'Enter maximum width (um) to define a single cell as a double: ';
@@ -204,6 +220,7 @@ for uniqstrain = 1:length(testset)
     % 5d. prompt user to accept or edit thresholds
     %     i) if accept, store thresholds and proceed to next unique strain
     %    ii) if edit, repeat with current strain until satisfied
+    disp(strcat('Current strain sample = ',unistr,', ',exp_stage))
     prompt_accept = 'Satisfied? Input "Yes" (stores seg data) or "No" (repeats viz) as a string: ';
     isSatified = input(prompt_accept);
     if strcmp(isSatified, "Yes") == 1
@@ -211,6 +228,7 @@ for uniqstrain = 1:length(testset)
         
         % saving data to segdata.mat
         % a. determine which row to add new data 
+        uniqcounter = uniqcounter + 1;
         newrow = length(tempdata) + 1;
         newdata(1).sample_strain = unistr;
         newdata(1).sample_stage = exp_stage;
@@ -225,16 +243,18 @@ for uniqstrain = 1:length(testset)
         tempdata{newrow,1} = newdata;
         
     elseif strcmp(isSatified, "No") == 1
-        disp('Thanks for being thorough! Please restart entire script to adjust min and max widths')
-        return
+        disp('Thanks for being thorough! Please try again, adjusting min and max widths')
     else
         disp('Error: must input either "Yes" or "No", please restart :P')
-        return
     end
-   
+    close(figure(1),figure(2),figure(3))
+    
 end
 
-%% if happy, save data!
+tempdata
+segdata
+
+%% Part 2. if happy, save data!
 cd(path2meta)
 segdata = tempdata;
 save('segdata.mat','segdata')
