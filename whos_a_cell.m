@@ -41,7 +41,7 @@
 
 
 % last updated: jen, 2021 June 25
-% commit: add 2021-06-22 experiment to segdata
+% commit: add min and max width to saved parameters lols
 
 
 % ok, let's go!
@@ -234,6 +234,8 @@ while uniqcounter <= length(testset)
         newdata(1).sample_stage = exp_stage;
         newdata(1).tested_img = unisample;
         newdata(1).test_experiment = experiment;
+        newdata(1).minWidth = minWidth;
+        newdata(1).maxWidth = maxWidth;
         
         prompt_sampledate = 'Input date sample was prepared/collected as a string: ';
         sample_date = input(prompt_sampledate);
