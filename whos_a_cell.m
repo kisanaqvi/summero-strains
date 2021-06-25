@@ -37,11 +37,11 @@
 %          immediately below with date and a note about which experiment
 %          was added to segdata.mat in this run 
 %
-%           example commit: "added 2021-06-15 experiment to segdata"
+%           example commit: "add 2021-06-15 experiment to segdata"
 
 
-% last updated: jen, 2021 June 22
-% commit: completed automation
+% last updated: jen, 2021 June 25
+% commit: add 2021-06-22 experiment to segdata
 
 
 % ok, let's go!
@@ -73,7 +73,7 @@ cd(path2meta)
 load('metadata.mat')
 load('segdata.mat')
 tempdata = segdata;
-index = 5; % index of experiment in metadata
+index = 6; % index of experiment in metadata
 
 
 %% Part 1. collect and store segmentation parameters for a new experiment
