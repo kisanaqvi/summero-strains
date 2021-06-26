@@ -37,11 +37,11 @@
 %          immediately below with date and a note about which experiment
 %          was added to segdata.mat in this run 
 %
-%           example commit: "added 2021-06-15 experiment to segdata"
+%           example commit: "add 2021-06-15 experiment to segdata"
 
 
-% last updated: jen, 2021 June 22
-% commit: completed automation
+% last updated: jen, 2021 June 25
+% commit: add min and max width to saved parameters lols
 
 
 % ok, let's go!
@@ -73,7 +73,7 @@ cd(path2meta)
 load('metadata.mat')
 load('segdata.mat')
 tempdata = segdata;
-index = 5; % index of experiment in metadata
+index = 6; % index of experiment in metadata
 
 
 %% Part 1. collect and store segmentation parameters for a new experiment
@@ -234,6 +234,8 @@ while uniqcounter <= length(testset)
         newdata(1).sample_stage = exp_stage;
         newdata(1).tested_img = unisample;
         newdata(1).test_experiment = experiment;
+        newdata(1).minWidth = minWidth;
+        newdata(1).maxWidth = maxWidth;
         
         prompt_sampledate = 'Input date sample was prepared/collected as a string: ';
         sample_date = input(prompt_sampledate);
