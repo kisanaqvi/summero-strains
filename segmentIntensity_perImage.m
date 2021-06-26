@@ -11,8 +11,8 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 June 17
-% commit: first commit, 2021-06-15 data
+% last updated: Kisa, 2021 June 23
+% commit: plotted data from 2021-06-22 experiment
 
 
 %% cell vs background intensity per image
@@ -20,16 +20,17 @@
 
 clear
 clc
-cd('/Users/jen/summero-strains')
+%cd('/Users/jen/summero-strains')
+cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
 load('metadata.mat')
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
+
 
 
 % 0. initialize experiment data
-index = 5; % 2021-06-15
+index = 6; % 2021-06-22
 date = metadata{index}.date;
-cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+%cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
+cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
 samples = metadata{index}.samples;
@@ -171,7 +172,7 @@ for sample = 1:length(samples)
         boxplot(xx,gg)
         set(gca,'xticklabel',{'new','old'})%,'dapi'})
         title(strcat(samples{sample},', n =',num2str(length(norm_single_gfp))))
-        ylim([0.8 3])
+        ylim([0.8 8])
         
     end
     
