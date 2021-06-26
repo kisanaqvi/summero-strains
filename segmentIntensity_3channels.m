@@ -4,53 +4,84 @@
 
 % strategy:
 %
+% Part ZERO:
+%   - user comments/uncomments path, as useful for their OS
+%   - loads metadata and segdata
+%   - assumes metadata has been completed for experiment being segmented
+%     and analyzed for single cell fluorescence intensity
+
+
 % Part ONE: measurements from raw images
-%
-%   0. initialize experiment data
-%   0. define image name of each channel
-%   0. for each sample, build directory and loop through stacks
-%   1. for each stack per sample, make a mask to isolate pixels representing cells
-%   2. quantify fluorescence intensity inside mask 
-%   3. quantify fluorescence intenstiy outside mask
-%
+%   - saves single cell measurements (i.e. size and signal intensity) to a
+%     file that gets called in Part TWO for plotting
+%   - only needs to be run once, unless changing segmentation or analysis
+%     parameters
+
+
 % Part TWO:
-%
-%   4. trim measured particules by size
-%   5. save new data matrix
-%
+%   - matches experiment metadata to segdata
+%   - trims measured particules by size (according to segdata)
+%   - creates a data matrix for box plots in Part THREE
+
+
 % Part THREE:
-%
-%   6. plot channel by channel comparison
+%   - plots:
+%       a. for each experimental sample, one figure of 3 boxplots panels
+%          each panel displays background intensity vs. single cell intensities
+%          (one panel per fluorescence channel)
+%       b. one figure summarizing all samples (one panel per sample)
+%          each panel displays single cell intensity as a fold-change from
+%          background intensity
+%          (three fluorescence channels per pannel)
 
 
 % ok, let's go!
 
-% last updated: jen, 2021 June 16
-% commit: 2021-06-15 analysis with weak signal
+% last updated: jen, 2021 June 25
+% commit: edit to use sample segmentation parameters from segdata
+
+%% Part ZERO. intitialize user specific file paths & experiment of interest
+
+%  Note to user: do these items before running segmentIntensity_3channels.m
+%
+%       1. comment out "path2meta" line(s) not appropriate to your system
+%       2. comment out "prepath" line(s) not appropriate to your system
+%       3. input metadata index of experiment of interest
+
+clc
+clear
+
+% 1. define path to metadata.mat and segdata.mat files
+path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
+%path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
+
+
+% 2. define prefix for path to image data
+%prepath = '/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/'; % jen's MacOS (non Kisa data)
+prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
+%prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
+
+
+% 3. load stored data and define experiment of interest
+cd(path2meta)
+load('metadata.mat')
+load('segdata.mat')
+segTable = tabulateSegData(segdata);
+index = 6; % index of experiment in metadata
 
 
 %% Part ONE: measurements from raw images 
 
-clc
-clear
-cd('/Users/jen/summero-strains')
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
-load('metadata.mat')
 
-% 0. initialize experiment data
-index = 5; % 2021-06-15
+% 0. initialize experiment metadata
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
 
-data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
-%data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',date);
-cd(data_folder)
+
+% 0. initialize image metadata
+data_folder = strcat(prepath,date);
 px_size = 11/magnification; % 11 um pixels before magnification
-
-
-
-% 0. define image name of each channel
 prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
 name_phase = strcat(prefix,'channel000',suffix);
@@ -60,7 +91,8 @@ name_dapi = strcat(prefix,'channel003',suffix);
 clear prefix suffix
 
 
-% 0. for each sample, build directory and loop through stacks
+
+% 0. for each sample in experiment, build directory and loop through stacks
 for ss = 1:length(samples)
     
     cd(data_folder)
@@ -193,31 +225,24 @@ end
 clear name_gfp name_phase names name_dapi name_mcherry
 clear ss stk current_stack
 
-cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+cd(prepath)
 save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
+
 
 %% Part TWO: trim measured data and create data structure
 
 
-clear
-clc
-cd('/Users/jen/summero-strains')
-load('metadata.mat')
-%cd('/Users/jen/Documents/TropiniLab/Data/Kisa') % move metadata to this path
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
-
-
-% 0. initialize experiment data
-index = 5; % 2021-06-15
+% 0. initialize experiment metadata
 date = metadata{index}.date;
-cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+magnification = metadata{index}.magnification;
+px_size = 11/magnification; % 11 um pixels without magnification
+samples = metadata{index}.samples;
+strains = metadata{index}.strains;
+growthStage = metadata{index}.growthStage;
+
+cd(prepath)
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
-samples = metadata{index}.samples;
-magnification = metadata{1}.magnification;
-px_size = 11/magnification; % 11 um pixels with 150x magnification
 
 
 % 1. concatenate data from same sample
@@ -308,18 +333,65 @@ for sample = 1:length(samples)
     
     
     % 3. trim particles by width
-    %    values are set as recorded in whos_a_cell.m
+    %    - pull values recorded in segdata.mat, by whos_a_cell.m
+    %    - match experiment meta data to segdata specifications to idenfity
+    %      which segdata inputs to draw from
+    %    - matches by priority:
+    %           1. strain + growth stage + experiment date
+    %           2. strain + growth stage 
+    %               - if #2 has two or more possible entries, display message
+    %                 for user to note / look into
+    
+    % 3a. determine segmentation parameters to pull from segdata.mat
+    smpl_strain = strains{sample}; % determine strain of interest (e.g. "G6")
+    segStrains = segTable(:,1); % segdata col 1 = strain
+    segStrains_string = cellfun(@unique,segStrains); % convert cell to string
+    smpl_strain_rows = find(segStrains_string == smpl_strain); % find rows in segdata matching strain of interest
+    
+    segTable_strain = segTable(smpl_strain_rows,:); % isolate segTable data pertaining to strain of interest
+    segStage = segTable_strain(:,2); % segdata column 2 = growth stage (e.g. stationary)
+    segStage_string = cellfun(@unique,segStage); % convert cell to string
+    stage_rows = find(segStage_string == growthStage); % find rows in segdata matching growth stage of interest
+    segTable_str_stg = segTable_strain(stage_rows,:); % isolate strain specific data of matched growth stage
+    
+    segDates = segTable_str_stg(:,4); % determine if an experiment date in segdata matches metadata for current experiment
+    segDates_string = cellfun(@unique,segDates); % convert cell to string
+    seg_row = find(segDates_string == date);
+    if length(seg_row) == 1 % only one match between segdata and meta data
+        
+        minWidth = segTable_strain{seg_row,6}; % segdata column 6 = min width
+        maxWidth = segTable_strain{seg_row,7}; % segdata column 7 = max width
+        
+    elseif length(seg_row) > 1 % multiple matches
+        
+        % display note to user
+        disp(strcat('Caution: multiple segdata entries with matching data!'))
+        segTable_str_stg
+        
+        % prompt user to choose one of multiple possibilities
+        prompt = 'Enter row # of segdata entry to use in analysis (as a double): ';
+        seg_row = input(prompt);
+        minWidth = segTable_strain{seg_row,6}; % segdata column 6 = min width
+        maxWidth = segTable_strain{seg_row,7}; % segdata column 7 = max width
+        
+    elseif length(seg_row) < 1 % empty = no match
+        
+         % display note to user
+        disp(strcat('No segdata entries for exact experiment'))
+        segTable_str_stg
+        
+        % prompt user to choose one of multiple possibilities
+        prompt = 'Enter row # of segdata entry to use in analysis (as a double): ';
+        seg_row = input(prompt);
+        minWidth = segTable_strain{seg_row,6}; % segdata column 6 = min width
+        maxWidth = segTable_strain{seg_row,7}; % segdata column 7 = max width
+        
+    end
+    
     
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
-    if sample < 3
-        LowerBound = 0.6;       % bounds for stationary G6 (see whos_a_cell.m)
-        UpperBound = 0.9;
-    elseif sample == 3
-        LowerBound = 0.7;       % bounds for stationary H03 + H06 (see whos_a_cell.m)
-        UpperBound = 1.6;
-    end
-    p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,LowerBound,UpperBound);
+    p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,minWidth,maxWidth);
     
 
     % 4. store final data 
@@ -328,6 +400,7 @@ for sample = 1:length(samples)
 end
 clear sample sample_particles p_trim UpperBound LowerBound
     
+
 %% Part THREE: visualize measured data
 
 % 1. isolate single cells from clumps
