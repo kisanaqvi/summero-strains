@@ -25,26 +25,26 @@
 
 % ok, let's go!
 
-% last updated: Kisa, 2021 June 23
-% commit: 2021-06-23 analysis with stronger signal but weak for novel probe
+% last updated: jen, 2021 June 16
+% commit: 2021-06-15 analysis with weak signal
 
 
 %% Part ONE: measurements from raw images 
 
 clc
 clear
-%cd('/Users/jen/summero-strains')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
+cd('/Users/jen/summero-strains')
+%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 6; % 2021-06-22
+index = 5; % 2021-06-15
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
 
-%data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
-data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',date);
+data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
+%data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',date);
 cd(data_folder)
 px_size = 11/magnification; % 11 um pixels before magnification
 
@@ -193,8 +193,8 @@ end
 clear name_gfp name_phase names name_dapi name_mcherry
 clear ss stk current_stack
 
-%cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
+%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
 save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 %% Part TWO: trim measured data and create data structure
@@ -202,18 +202,17 @@ save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 clear
 clc
-%cd('/Users/jen/summero-strains')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
+cd('/Users/jen/summero-strains')
 load('metadata.mat')
 %cd('/Users/jen/Documents/TropiniLab/Data/Kisa') % move metadata to this path
-
+%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
 
 
 % 0. initialize experiment data
-index = 6; % 2021-06-22
+index = 5; % 2021-06-15
 date = metadata{index}.date;
-%cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
+%cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
 samples = metadata{index}.samples;
@@ -314,8 +313,8 @@ for sample = 1:length(samples)
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
     if sample < 3
-        LowerBound = 0.5;       % bounds for stationary G6 (see whos_a_cell.m)
-        UpperBound = 1.2;
+        LowerBound = 0.6;       % bounds for stationary G6 (see whos_a_cell.m)
+        UpperBound = 0.9;
     elseif sample == 3
         LowerBound = 0.7;       % bounds for stationary H03 + H06 (see whos_a_cell.m)
         UpperBound = 1.6;
@@ -357,7 +356,7 @@ for smpl = 1:length(samples)
 
     % 1. isolate single cells from clumps
     if smpl < 3
-        clumpThresh = 1.2; % min width of clumps for S1 & S2 (see whos_a_cell.m)
+        clumpThresh = 0.9; % min width of clumps for S1 & S2 (see whos_a_cell.m)
     elseif smpl == 3 
         clumpThresh = 1.6;
     end
@@ -379,7 +378,7 @@ for smpl = 1:length(samples)
      g = [zeros(length(single_bg_gfp), 1); ones(length(single_gfp), 1)];%; 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-     title(strcat('GFP:',samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
+     title(strcat('GFP_',samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
      ylim([200 3000])
      
      subplot(1,length(samples),2)
@@ -387,7 +386,7 @@ for smpl = 1:length(samples)
      g = [zeros(length(single_bg_mcherry), 1); ones(length(single_mcherry), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%,'BG', 'Clump'})
-     title(strcat('mCherry:',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
+     title(strcat('mCherry_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
      ylim([200 3000])
      
      subplot(1,length(samples),3)
@@ -395,7 +394,7 @@ for smpl = 1:length(samples)
      g = [zeros(length(single_bg_dapi), 1); ones(length(single_dapi), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-     title(strcat('DAPI:',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
+     title(strcat('DAPI_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
      ylim([200 3000])
      
      
@@ -416,8 +415,6 @@ for smpl = 1:length(samples)
     set(gca,'xticklabel',{'novel','Carolinas','dapi'})
     title(strcat(samples{smpl},', n =',num2str(length(norm_single_gfp))))
     ylim([0.8 5])
-        
     
      
 end
-
