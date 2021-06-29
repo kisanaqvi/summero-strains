@@ -40,9 +40,8 @@
 %           example commit: "add 2021-06-15 experiment to segdata"
 
 
-% last updated: jen, 2021 June 25
-% commit: add min and max width to saved parameters lols
-
+% last updated: kisa, 2021 June 28
+% commit: Add 2021-06-25 experiment to segdata 
 
 % ok, let's go!
 
@@ -58,14 +57,14 @@ clc
 clear
 
 % 1. define path to metadata.mat and segdata.mat files
-path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
-%path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
+%path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
+path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
 
 
 % 2. define prefix for path to image data
 %prepath = '/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/'; % jen's MacOS (non Kisa data)
-prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
-%prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
+%prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
+prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
 
 
 % 3. load stored data and define experiment of interest
@@ -73,7 +72,7 @@ cd(path2meta)
 load('metadata.mat')
 load('segdata.mat')
 tempdata = segdata;
-index = 6; % index of experiment in metadata
+index = 7; % index of experiment in metadata
 
 
 %% Part 1. collect and store segmentation parameters for a new experiment

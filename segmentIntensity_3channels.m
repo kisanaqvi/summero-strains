@@ -37,8 +37,8 @@
 
 % ok, let's go!
 
-% last updated: jen, 2021 June 25
-% commit: edit to use sample segmentation parameters from segdata
+% last updated: kisa, 2021 June 28 
+% commit: Analyze signal intensity from 2021-06-25 experiment, jen see part 3
 
 %% Part ZERO. intitialize user specific file paths & experiment of interest
 
@@ -52,14 +52,14 @@ clc
 clear
 
 % 1. define path to metadata.mat and segdata.mat files
-path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
-%path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
+%path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
+path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
 
 
 % 2. define prefix for path to image data
 %prepath = '/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/'; % jen's MacOS (non Kisa data)
-prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
-%prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
+%prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
+prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
 
 
 % 3. load stored data and define experiment of interest
@@ -67,7 +67,7 @@ cd(path2meta)
 load('metadata.mat')
 load('segdata.mat')
 segTable = tabulateSegData(segdata);
-index = 6; % index of experiment in metadata
+index = 7; % index of experiment in metadata
 
 
 %% Part ONE: measurements from raw images 
@@ -429,9 +429,9 @@ for smpl = 1:length(samples)
 
     % 1. isolate single cells from clumps
     if smpl < 3
-        clumpThresh = 0.9; % min width of clumps for S1 & S2 (see whos_a_cell.m)
+        clumpThresh = 1.5; % min width of clumps for S1 & S2 (see whos_a_cell.m)
     elseif smpl == 3 
-        clumpThresh = 1.6;
+        clumpThresh = 1.5;
     end
     
     single_gfp = cell_gfp(cell_width <= clumpThresh);
@@ -446,28 +446,28 @@ for smpl = 1:length(samples)
      n_single = length(single_bg_gfp);
      
      figure(10+smpl)
-     subplot(1,length(samples),1)
+     subplot(1,3,1)
      x = [single_bg_gfp; single_gfp]; %clump_bg; clump_gfp];
      g = [zeros(length(single_bg_gfp), 1); ones(length(single_gfp), 1)];%; 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-     title(strcat('GFP_',samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
+     title(strcat('GFP',{' '}, samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
      ylim([200 3000])
      
-     subplot(1,length(samples),2)
+     subplot(1,3,2)
      x = [single_bg_mcherry; single_mcherry]; %clump_bg; clump_gfp];
      g = [zeros(length(single_bg_mcherry), 1); ones(length(single_mcherry), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%,'BG', 'Clump'})
-     title(strcat('mCherry_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
+     title(strcat('mCherry',{' '},samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
      ylim([200 3000])
      
-     subplot(1,length(samples),3)
+     subplot(1,3,3)
      x = [single_bg_dapi; single_dapi]; %clump_bg; clump_gfp];
      g = [zeros(length(single_bg_dapi), 1); ones(length(single_dapi), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
      boxplot(x,g)
      set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-     title(strcat('DAPI_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
+     title(strcat('DAPI',{' '},samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
      ylim([200 3000])
      
      
@@ -485,7 +485,7 @@ for smpl = 1:length(samples)
     xx = [norm_single_gfp; norm_single_mcherry; norm_single_dapi];
     gg = [zeros(length(norm_single_gfp), 1); ones(length(norm_single_mcherry), 1); 2*ones(length(norm_single_dapi), 1)];
     boxplot(xx,gg)
-    set(gca,'xticklabel',{'novel','Carolinas','dapi'})
+    set(gca,'xticklabel',{'GFP',',mCherry','dapi'})
     title(strcat(samples{smpl},', n =',num2str(length(norm_single_gfp))))
     ylim([0.8 5])
     
