@@ -664,7 +664,7 @@ clear prefix suffix
 cd(data_folder)
 sDirectory = dir(strcat(sample,'_*'));
 names = {sDirectory.name};
-img_bw25113 = names{10}; % chosen image
+img_bw25113 = names{2}; % chosen image
 
 
 % 1. load one 150x phase image
@@ -924,7 +924,7 @@ px_size = 11/150; % 11 um pixels with 150x magnification
 experiment = '2021-06-04';
 data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
 cd(data_folder)
-sample = 'N3'; % fixed, no encoding probe
+sample = 'N1'; % fixed with NM65 encoding probe
 
 prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
@@ -1014,8 +1014,10 @@ clear
 % 0. initialize experiment meta data
 px_size = 11/100; % 11 um pixels with 100x magnification
 experiment = '2021-06-15';
+
 %data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
 data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',experiment);
+
 cd(data_folder)
 sample = 'S1'; % fixed with NM65 encoding probe
 
@@ -1107,8 +1109,10 @@ clear
 % 0. initialize experiment meta data
 px_size = 11/100; % 11 um pixels with 100x magnification
 experiment = '2021-06-15';
+
 %data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
 data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',experiment);
+
 cd(data_folder)
 sample = 'S2'; % fixed with NM65 encoding probe
 
@@ -1116,6 +1120,7 @@ prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
 name_phase = strcat(prefix,'channel000',suffix);
 name_gfp = strcat(prefix,'channel001',suffix);
+
 clear prefix suffix
     
 
@@ -1123,13 +1128,16 @@ clear prefix suffix
 cd(data_folder)
 sDirectory = dir(strcat(sample,'_*'));
 names = {sDirectory.name};
-img_h01_exp = names{5}; % chosen image
+
+img_h01_exp = names{8}; % chosen image
+
 
 
 % 1. load one 100x phase image
 cd(data_folder)
 cd(strcat(img_h01_exp,'/Default'))
 img_phase = imread(name_phase); % read phase image
+
 img_gfp = imread(name_gfp); 
 figure(1) % display phase image
 imshow(img_gfp, 'DisplayRange',[500 1000]); %lowering right # increases num sat'd pxls
@@ -1166,6 +1174,7 @@ angles = extractfield(stats,'Orientation')';
 %    iii) above what threshold is a clump of cells?
 
 figure(3) % this one will get overlaid with particle outlines
+
 imshow(img_gfp, 'DisplayRange',[500 1000]);
 title('G6 S2 (100x), phase')
 
@@ -1202,10 +1211,12 @@ clear
 % 0. initialize experiment meta data
 px_size = 11/100; % 11 um pixels with 100x magnification
 experiment = '2021-06-15';
+
 %data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',experiment);
 data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',experiment);
 cd(data_folder)
 sample = 'S3'; 
+
 
 prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
@@ -1285,3 +1296,4 @@ for pp = 1:length(stats)
     text((centroid(1)+1)/px_size, (centroid(2)+1)/px_size, num2str(pp),'Color',color_text,'FontSize',10)
     
 end
+
