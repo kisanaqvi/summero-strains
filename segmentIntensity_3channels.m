@@ -37,8 +37,8 @@
 
 % ok, let's go!
 
-% last updated: kisa, 2021 June 28 
-% commit: Analyze signal intensity from 2021-06-25 experiment, jen see part 3
+% last updated: jen, 2021 June 30 
+% commit: update part 3 to use segdata and avoid manual entry
 
 %% Part ZERO. intitialize user specific file paths & experiment of interest
 
@@ -52,14 +52,14 @@ clc
 clear
 
 % 1. define path to metadata.mat and segdata.mat files
-%path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
-path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
+path2meta = '/Users/jen/summero-strains'; % jen's Mac OS
+%path2meta = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master'; % kisa's PC
 
 
 % 2. define prefix for path to image data
 %prepath = '/Users/jen/Documents/TropiniLab/Molecular_tools/HiPR_fish/'; % jen's MacOS (non Kisa data)
-%prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
-prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
+prepath = '/Users/jen/Documents/TropiniLab/Data/Kisa/';                %jen's MacOS (Kisa data)
+%prepath = 'C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/';            % kisa's PC
 
 
 % 3. load stored data and define experiment of interest
@@ -428,11 +428,7 @@ for smpl = 1:length(samples)
     
 
     % 1. isolate single cells from clumps
-    if smpl < 3
-        clumpThresh = 1.5; % min width of clumps for S1 & S2 (see whos_a_cell.m)
-    elseif smpl == 3 
-        clumpThresh = 1.5;
-    end
+    clumpThresh = maxWidth; % min width of clumps = max width of single cells
     
     single_gfp = cell_gfp(cell_width <= clumpThresh);
     single_mcherry = cell_mcherry(cell_width <= clumpThresh);
