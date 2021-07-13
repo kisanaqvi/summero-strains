@@ -72,7 +72,7 @@ cd(path2meta)
 load('metadata.mat')
 load('segdata.mat')
 tempdata = segdata;
-index = 7; % index of experiment in metadata
+index = 8; % index of experiment in metadata
 
 
 %% Part 1. collect and store segmentation parameters for a new experiment
