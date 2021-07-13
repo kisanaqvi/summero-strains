@@ -33,18 +33,16 @@
 
 clc
 clear
-%%cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 5; % 2021-06-04
+index = 4; % 2021-06-04
 date = metadata{index}.date;
 magnification = metadata{index}.magnification;
 samples = metadata{index}.samples;
 
-%%data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
-data_folder = strcat('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data/',date);
+data_folder = strcat('/Users/jen/Documents/TropiniLab/Data/Kisa/',date);
 cd(data_folder)
 px_size = 11/magnification; % 11 um pixels with 150x magnification
 
@@ -55,9 +53,8 @@ prefix = 'img_';
 suffix = '_position000_time000000000_z000.tif';
 name_phase = strcat(prefix,'channel000',suffix);
 name_gfp = strcat(prefix,'channel001',suffix);
-name_mcherry = strcat(prefix,'channel002',suffix);
-name_dapi = strcat(prefix,'channel003',suffix);
 clear prefix suffix
+
 
 
 % 0. for each sample, build directory and loop through stacks
@@ -75,11 +72,10 @@ for ss = 1:length(samples)
         current_stack = names{stk};
         cd(strcat(current_stack,'/Default'))
         
-        %   1a. read phase, gfp, mCherry, DAPI images
+        %   1a. read phase, gfp images
         img_phase = imread(name_phase);
         img_gfp = imread(name_gfp);
-        img_mcherry = imread(name_mcherry);
-        img_dapi = imread(name_dapi);
+        
         
         %   1b. make mask from phase image
         figure(1)
@@ -122,8 +118,7 @@ for ss = 1:length(samples)
         
         %   2a. overlay mask with fluorescence image by dot-product
         masked_gfp = bw_final .* double(img_gfp); % convert uint16 image to double class
-        masked_mcherry = bw_final .* double(img_mcherry);
-        masked_dapi = bw_final .* double(img_dapi); 
+
         
         %   2b. compute the mean fluorescence intensity for each particle in mask
         for pp = 1:cc.NumObjects
@@ -132,8 +127,6 @@ for ss = 1:length(samples)
             pixel_id_of_cell = cc.PixelIdxList{pp}; % pixel index where the cell of interest is
             
             cell_intensity_gfp(pp) = mean(masked_gfp(pixel_id_of_cell)); % compute the mean intensity of pixels in the cell
-            cell_intensity_mcherry(pp) = mean(masked_mcherry(pixel_id_of_cell));
-            cell_intensity_dapi(pp) = mean(masked_dapi(pixel_id_of_cell));
             
         end
         clear pp pixel_id_of_cell
@@ -149,13 +142,10 @@ for ss = 1:length(samples)
         
         %   3b. overlay background mask with fluorescence image by dot-product
         bg_gfp = bg_mask .* double(img_gfp); % convert uint16 image to double class
-        bg_mcherry = bg_mask .* double(img_mcherry);
-        bg_dapi = bg_mask .* double(img_dapi);
+
         
         %   3c. compute the mean background intensity for each channel
         bg_gfp_mean = mean(mean(bg_gfp));
-        bg_mcherry_mean = mean(mean(bg_mcherry));
-        bg_dapi_mean = mean(mean(bg_dapi));
         clear bg_mask
         
         
@@ -165,32 +155,27 @@ for ss = 1:length(samples)
             
             % cell intensity
             stats(particle).gfp_cell = cell_intensity_gfp(particle);
-            stats(particle).mcherry_cell = cell_intensity_mcherry(particle);
-            stats(particle).dapi_cell = cell_intensity_dapi(particle);
             
             % mean background intensity
             stats(particle).gfp_bg = bg_gfp_mean;
-            stats(particle).mcherry_bg = bg_mcherry_mean;
-            stats(particle).dapi_bg = bg_dapi_mean;
+           
         end
-        clear cell_intensity_gfp cell_intensity_mcherry cell_intensity_dapi
-        clear masked_gfp masked_mcherry masked_dapi bw_final particle cc
-        clear img_phase img_gfp img_mcherry img_dapi bg_gfp bg_mcherry bg_dapi
+        clear cell_intensity_gfp img_phase img_gfp  bg_gfp 
+        clear masked_gfp  bw_final particle cc
         
         
         % 5. store particle measurements into cell per stack
         dm{stk,ss} = stats;
-        clear bg_gfp_mean bg_mcherry_mean bg_dapi_mean
+        clear bg_gfp_mean
         
     end
     clear stats
     
 end
-clear name_gfp name_phase names name_dapi name_mcherry
+clear name_gfp name_phase names 
 clear ss stk current_stack
 
-%%cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
 save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 %% Part TWO: trim measured data and create data structure
@@ -198,16 +183,14 @@ save(strcat('dm-segmentIntensity-',date,'.mat'),'dm')
 
 clear
 clc
-%%cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
-%%cd('/Users/jen/Documents/TropiniLab/Data/Kisa') % move metadata to this path
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/summero-strains-master')
+cd('/Users/jen/Documents/TropiniLab/Data/such-hipr/sourcedata')
+%cd('/Users/jen/Documents/TropiniLab/Data/Kisa') % move metadata to this path
 load('metadata.mat')
 
 % 0. initialize experiment data
-index = 5; % 2021-06-15
+index = 4; % 2021-06-04
 date = metadata{index}.date;
-%%cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
-cd('C:/Users/Kisa Naqvi/Documents/TropiniLab/Data')
+cd('/Users/jen/Documents/TropiniLab/Data/Kisa')
 load(strcat('dm-segmentIntensity-',date,'.mat'))
 
 samples = metadata{index}.samples;
@@ -238,7 +221,6 @@ clear col combined_sample_data num_stacks current_sample stk_data
 for sample = 1:length(samples)
     
     sample_particles = combined_particles{1,sample};
-    
     if isempty(sample_particles) == 1
         continue
     end
@@ -275,23 +257,14 @@ for sample = 1:length(samples)
     
     % 2d. cell intensity
     GFP_cell = extractfield(sample_particles,'gfp_cell')';
-    mCherry_cell = extractfield(sample_particles,'mcherry_cell')';
-    DAPI_cell = extractfield(sample_particles,'dapi_cell')';
     parameter_unit.gfp_cell = GFP_cell;
-    parameter_unit.mcherry_cell = mCherry_cell;
-    parameter_unit.dapi_cell = DAPI_cell;
-    clear GFP_cell mCherry_cell DAPI_cell
     clear GFP_cell
     
     
     % 2e. background intensity of corresponding image
     GFP_bg = extractfield(sample_particles,'gfp_bg')';
-    mCherry_bg = extractfield(sample_particles,'mcherry_bg')';
-    DAPI_bg = extractfield(sample_particles,'dapi_bg')';
     parameter_unit.gfp_bg = GFP_bg;
-    parameter_unit.mcherry_bg = mCherry_bg;
-    parameter_unit.dapi_bg = DAPI_bg;
-    clear GFP_bg mCherry_bg DAPI_bg
+    clear GFP_bg
     
     
     % 2f. eccentricity and angle
@@ -307,12 +280,12 @@ for sample = 1:length(samples)
     
     % 3b. trim by width
     TrimField = 'MinAx';  % choose relevant characteristic to restrict, run several times to apply for several fields
-    if sample < 3
-        LowerBound = 0.6;       % bounds for stationary G6 (see whos_a_cell.m)
+    if sample < 4
+        LowerBound = 0.6;     % lower bound for exponential (see whos_a_cell.m)
         UpperBound = 0.9;
-    elseif sample == 3
-        LowerBound = 0.7;       % bounds for stationary H03 + H06 (see whos_a_cell.m)
-        UpperBound = 1.6;
+    elseif sample >= 4
+        LowerBound = 0.6;       % lower bound for stationary (see whos_a_cell.m)
+        UpperBound = 0.9;
     end
     p_trim = ParticleTrim_glycogen(parameter_unit,TrimField,LowerBound,UpperBound);
     
@@ -330,8 +303,8 @@ clear sample sample_particles p_trim UpperBound LowerBound
 % 3. plot single cell and clump intensities normalized by background
 
 % a counter for each
-%counter_S1 = 0; counter_S2 = 0; counter_S3 = 0; 
-%ct_S1 = 0; ct_S2 = 0; ct_S3 = 0;
+counter_G1 = 0; counter_G2 = 0; counter_G3 = 0;
+ct_G1 = 0; ct_G2 = 0; ct_G3 = 0;
 
 % for each sample
 for smpl = 1:3%length(samples)
@@ -339,186 +312,120 @@ for smpl = 1:3%length(samples)
     % 0. gather cell width and intensity data
     sample_data = converted_data{1,smpl};
     cell_width = sample_data.MinAx;
-    
-    % mean cell fluorescence 
-    cell_gfp = sample_data.gfp_cell;
-    cell_mcherry = sample_data.mcherry_cell;
-    cell_dapi = sample_data.dapi_cell;
-    
-    
-    % mean bg fluorescence
-    bg_gfp = sample_data.gfp_bg;
-    bg_mcherry = sample_data.mcherry_bg;
-    bg_dapi = sample_data.dapi_bg;
+    cell_gfp = sample_data.gfp_cell; % mean cell fluorescence 
+    bg_gfp = sample_data.gfp_bg; % mean bg fluorescence
     
 
     % 1. isolate single cells from clumps
-    if smpl < 3
-        clumpThresh = 0.9; % min width of clumps for S1 (see whos_a_cell.m)
- % min width of clumps for S2 (see whos_a_cell.m)
-    elseif smpl == 3 
-        clumpThresh = 1.6;
+    if smpl < 5
+        clumpThresh = 1.6; % min width of clumps for 381 (see whos_a_cell.m)
+    elseif smpl < 9
+        clumpThresh = 1;   % min width of clumps for 505 (see whos_a_cell.m)
+    else
+        clumpThresh = 1;   % min width of clumps for 488 (see whos_a_cell.m)
     end
     
     single_gfp = cell_gfp(cell_width <= clumpThresh);
-    single_mcherry = cell_mcherry(cell_width <= clumpThresh);
-    single_dapi = cell_dapi(cell_width <= clumpThresh);
     single_bg = bg_gfp(cell_width <= clumpThresh);
-    %clump_gfp = cell_gfp(cell_width > clumpThresh);
-    %clump_bg = bg_gfp(cell_width > clumpThresh);
+    clump_gfp = cell_gfp(cell_width > clumpThresh);
+    clump_bg = bg_gfp(cell_width > clumpThresh);
     
     
     % 2. box plots of absolute intensities of background, single cells, clumps
       
      n_single = length(single_bg);
-     %n_clump = length(clump_bg);
+     n_clump = length(clump_bg);
     
-%     % group subplots by condition
-%     if smpl == 1
-%         counter_S1 = counter_S1 + 1;
+    % group subplots by strain
+    if smpl < 5
+        counter_G1 = counter_G1 + 1;
         
-
-        figure(10+smpl)
-        %subplot(1,length(samples),counter_S1)
-        subplot(1,length(samples),1)
-        x = [single_bg; single_gfp]; %clump_bg; clump_gfp];
-        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1)];%; 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        figure(7)
+        %subplot(1,length(samples),counter_G1)
+        subplot(1,3,counter_G1)
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-        title(strcat('GFP_',samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
-        ylim([200 3000])
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
+        ylim([200 800])
         
-        %figure(17)
-        subplot(1,length(samples),2)
-        x = [single_bg; single_mcherry]; %clump_bg; clump_gfp];
-        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-        boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x'})%,'BG', 'Clump'})
-        title(strcat('mCherry_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
-        ylim([200 3000])
+    elseif smpl < 9
+        counter_G2 = counter_G2 + 1;
         
-        %figure(27)
-        subplot(1,length(samples),3)
-        x = [single_bg; single_dapi]; %clump_bg; clump_gfp];
-        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1)];% 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        figure(8)
+        subplot(1,length(samples),counter_G2)
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
         boxplot(x,g)
-        set(gca,'xticklabel',{'BG','1x'})%'BG', 'Clump'})
-        title(strcat('DAPI_',samples{smpl},', n =',num2str(n_single)))%,' and n =',num2str(n_clump)))
-        ylim([200 3000])
-%         
-%     elseif smpl == 2
-%         counter_S2 = counter_S2 + 1;
-%         
-%         figure(8)
-%         subplot(1,length(samples),counter_S2)
-%         x = [single_bg; single_gfp; clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single)))%' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%         figure(18)
-%         subplot(1,length(samples),counter_S1)
-%         x = [single_bg; single_mcherry]; %clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%         figure(28)
-%         subplot(1,length(samples),counter_S1)
-%         x = [single_bg; single_dapi]; %clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%     else
-%         counter_S3 = counter_S3 + 1;
-%         
-%         figure(9)
-%         subplot(1,4,counter_S3)
-%         x = [single_bg; single_gfp; clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%         figure(19)
-%         subplot(1,length(samples),counter_S1)
-%         x = [single_bg; single_mcherry]; %clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%         figure(29)
-%         subplot(1,length(samples),counter_S1)
-%         x = [single_bg; single_dapi]; %clump_bg; clump_gfp];
-%         g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
-%         boxplot(x,g)
-%         set(gca,'xticklabel',{'BG','1x','BG', 'Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(n_single),' and n =',num2str(n_clump)))
-%         ylim([200 1600])
-%         
-%     end
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
+        ylim([200 1600])
+        
+    else
+        counter_G3 = counter_G3 + 1;
+        
+        figure(9)
+        subplot(1,4,counter_G3)
+        x = [single_bg; single_gfp; clump_bg; clump_gfp];
+        g = [zeros(length(single_bg), 1); ones(length(single_gfp), 1); 2*ones(length(clump_bg), 1); 3*ones(length(clump_gfp), 1)];
+        boxplot(x,g)
+        set(gca,'xticklabel',{'BG','1x'})
+        title(strcat(samples{smpl},', n =',num2str(n_single)))
+        ylim([200 1600])
+        
+    end
     
     
-%     % 3. plot single cell and clump intensities normalized by background
-%     
-%     % cell fluorescence normalized by bg fluorescence
-%     norm_single = single_gfp./single_bg;
-%     %norm_clump = clump_gfp./clump_bg;
-%     norm_n = [length(norm_single); length(norm_clump)];
+    % 3. plot single cell and clump intensities normalized by background
+    
+    % cell fluorescence normalized by bg fluorescence
+    norm_single = single_gfp./single_bg;
+    norm_clump = clump_gfp./clump_bg;
+    norm_n = [length(norm_single); length(norm_clump)];
 
     
-%     if smpl < 5
-%         ct_S1 = ct_S1 + 1;
-%         
-%         figure(17)
-%         subplot(1,4,ct_S1)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     elseif smpl < 9
-%         ct_S2 = ct_S2 + 1;
-%         
-%         figure(18)
-%         subplot(1,4,ct_S2)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     else
-%         ct_S3 = ct_S3 + 1;
-%         
-%         figure(19)
-%         subplot(1,4,ct_S3)
-%         xx = [norm_single; norm_clump];
-%         gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
-%         boxplot(xx,gg)
-%         set(gca,'xticklabel',{'1x','Clump'})
-%         title(strcat(samples{smpl},', n =',num2str(norm_n(1)),' and n =',num2str(norm_n(2))))
-%         ylim([0.8 5])
-%         
-%     end
-
+    if smpl < 5
+        ct_G1 = ct_G1 + 1;
+        
+        figure(17)
+        %subplot(1,4,ct_G1)
+        subplot(1,3,counter_G1)
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
+        ylim([0.8 3])
+        
+    elseif smpl < 9
+        ct_G2 = ct_G2 + 1;
+        
+        figure(18)
+        subplot(1,4,ct_G2)
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
+        ylim([0.8 5])
+        
+    else
+        ct_G3 = ct_G3 + 1;
+        
+        figure(19)
+        subplot(1,4,ct_G3)
+        xx = [norm_single; norm_clump];
+        gg = [zeros(length(norm_single), 1); ones(length(norm_clump), 1)];
+        boxplot(xx,gg)
+        set(gca,'xticklabel',{'1x'})
+        title(strcat(samples{smpl},', n =',num2str(norm_n(1))))
+        ylim([0.8 5])
+        
+    end
     
     
 end
-
 
 %% Part FOUR. save boxplots
 
